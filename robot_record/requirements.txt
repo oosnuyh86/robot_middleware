@@ -1,0 +1,5 @@
+mlagents==0.28.0
+torch>=2.0.0
+torchvision>=0.15.0
+tensorboard>=2.14.0
+protobuf==3.20.3

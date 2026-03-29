@@ -247,6 +247,8 @@ namespace RobotMiddleware.UI
             _secondaryCamera.CopyFrom(mainCam);
             _secondaryCamera.targetTexture = _viewportRT;
             _secondaryCamera.depth = mainCam.depth - 1;
+            _secondaryCamera.clearFlags = CameraClearFlags.SolidColor;
+            _secondaryCamera.backgroundColor = HUDTheme.BgRoot;
 
             camGO.transform.position = mainCam.transform.position + new Vector3(2f, 1f, -2f);
             camGO.transform.LookAt(Vector3.zero);

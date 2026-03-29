@@ -12,6 +12,7 @@ import professionalsRouter from "./routes/professionals.js";
 import jobsRouter from "./routes/jobs.js";
 import recordsRouter from "./routes/records.js";
 import uploadsRouter from "./routes/uploads.js";
+import alignmentRouter from "./routes/alignment.js";
 
 const app = express();
 const server = createServer(app);
@@ -26,6 +27,7 @@ app.use("/api/professionals", professionalsRouter);
 app.use("/api/jobs", jobsRouter);
 app.use("/api/records", recordsRouter);
 app.use("/api/uploads", uploadsRouter);
+app.use("/api/alignment", alignmentRouter);
 
 // Health check
 app.get("/api/health", (_req, res) => {

@@ -12,6 +12,10 @@ out/
 .env.local
 .env.*.local
 
+# Python venv & ML-Agents training output
+robot_record/.venv/
+robot_record/results/
+
 # Unity (robot_record)
 robot_record/Library/
 robot_record/Temp/

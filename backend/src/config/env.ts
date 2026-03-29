@@ -17,4 +17,6 @@ export const env = {
   AWS_ACCESS_KEY_ID: required("AWS_ACCESS_KEY_ID"),
   AWS_SECRET_ACCESS_KEY: required("AWS_SECRET_ACCESS_KEY"),
   S3_BUCKET: required("S3_BUCKET"),
+
+  OLLAMA_URL: process.env.OLLAMA_URL || "http://localhost:11434",
 } as const;

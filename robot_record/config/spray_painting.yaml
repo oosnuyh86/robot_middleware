@@ -1,0 +1,18 @@
+behaviors:
+  SprayPaintingAgent:
+    trainer_type: ppo
+    behavioral_cloning:
+      demo_path: Assets/Demonstrations/
+      strength: 0.5
+      steps: 150000
+    reward_signals:
+      extrinsic:
+        strength: 1.0
+    network_settings:
+      hidden_units: 256
+      num_layers: 3
+    hyperparameters:
+      learning_rate: 0.0003
+      batch_size: 64
+      buffer_size: 10240
+    max_steps: 1000000
