@@ -72,6 +72,9 @@ namespace RobotMiddleware.Controller
 
         private void Update()
         {
+            // Pump the WebSocket client to dispatch messages on main thread
+            _wsClient?.ProcessMessages();
+
             while (_messageQueue.TryDequeue(out string msg))
             {
                 Debug.Log($"[MiddlewareController] Received: {msg}");
