@@ -19,14 +19,14 @@ namespace RobotMiddleware.Robotics
         private float[] _goalTargets = new float[6];
         private bool _initialized;
 
-        // Joint names matching the UR10e URDF
-        private static readonly string[] JointNames = {
-            "shoulder_pan_joint",
-            "shoulder_lift_joint",
-            "elbow_joint",
-            "wrist_1_joint",
-            "wrist_2_joint",
-            "wrist_3_joint"
+        // Link names matching the UR10e URDF hierarchy (URDF Importer uses link names, not joint names)
+        private static readonly string[] JointLinkNames = {
+            "shoulder_link",
+            "upper_arm_link",
+            "forearm_link",
+            "wrist_1_link",
+            "wrist_2_link",
+            "wrist_3_link"
         };
 
         public bool IsInitialized => _initialized;
@@ -42,12 +42,12 @@ namespace RobotMiddleware.Robotics
             _joints = new ArticulationBody[6];
             var allBodies = GetComponentsInChildren<ArticulationBody>();
 
-            for (int i = 0; i < JointNames.Length; i++)
+            for (int i = 0; i < JointLinkNames.Length; i++)
             {
                 foreach (var body in allBodies)
                 {
-                    if (body.gameObject.name.Contains(JointNames[i]) ||
-                        body.gameObject.name.Contains(JointNames[i].Replace("_joint", "")))
+                    if (body.gameObject.name == JointLinkNames[i] &&
+                        body.jointType == ArticulationJointType.RevoluteJoint)
                     {
                         _joints[i] = body;
                         ConfigureJoint(body);
@@ -57,7 +57,7 @@ namespace RobotMiddleware.Robotics
 
                 if (_joints[i] == null)
                 {
-                    Debug.LogWarning($"[RobotArmController] Joint not found: {JointNames[i]}");
+                    Debug.LogWarning($"[RobotArmController] Joint not found for link: {JointLinkNames[i]}");
                 }
             }
 

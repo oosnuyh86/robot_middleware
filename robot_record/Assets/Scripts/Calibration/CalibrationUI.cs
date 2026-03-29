@@ -204,10 +204,11 @@ namespace RobotMiddleware.Calibration
 
                 case UIState.Complete:
                     _instructionText.text = "Calibration successful";
-                    float conf = _alignmentManager != null ? _alignmentManager.LastConfidence : 0f;
-                    _resultText.color = conf >= 0.7f ? HUDTheme.SuccessGreen : HUDTheme.WarningOrange;
-                    _resultText.text = $"Alignment complete! Confidence: {conf:P1}";
-                    if (conf < 0.7f)
+                    float err = _alignmentManager != null ? _alignmentManager.LastError : float.MaxValue;
+                    bool good = err < 0.01f; // < 1 cm mean error
+                    _resultText.color = good ? HUDTheme.SuccessGreen : HUDTheme.WarningOrange;
+                    _resultText.text = $"Alignment complete! Mean error: {err * 1000f:F1} mm";
+                    if (!good)
                     {
                         _retryButton.SetActive(true);
                     }
@@ -243,7 +244,7 @@ namespace RobotMiddleware.Calibration
 
         // ── Event Handlers ──
 
-        private void HandleProgress(int captured, int total)
+        private void HandleProgress(int captured, int total, string status)
         {
             UpdateDots(captured);
 
@@ -257,7 +258,7 @@ namespace RobotMiddleware.Calibration
             }
         }
 
-        private void HandleComplete(Matrix4x4 transform, float confidence)
+        private void HandleComplete(Matrix4x4 transform, float error)
         {
             SetState(UIState.Complete);
         }
