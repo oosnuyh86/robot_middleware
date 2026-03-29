@@ -1,0 +1,48 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output
+dist/
+.next/
+out/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Unity (robot_record)
+robot_record/Library/
+robot_record/Temp/
+robot_record/Logs/
+robot_record/UserSettings/
+robot_record/Builds/
+robot_record/MemoryCaptures/
+robot_record/Recordings/
+robot_record/*.csproj
+robot_record/*.sln
+robot_record/*.slnx
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Signaling server (standalone npm project)
+signaling/node_modules/
+signaling/out/
+
+# Debug
+npm-debug.log*
+pnpm-debug.log*
+
+# TypeScript
+*.tsbuildinfo

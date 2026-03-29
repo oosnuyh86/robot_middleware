@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "noImplicitAny": false,
+    "noEmitOnError": true,
+    "removeComments": false,
+    "sourceMap": true,
+    "target": "es6",
+    "module": "commonjs",
+    "declaration": true,
+	  "outDir" : "./out",
+    "esModuleInterop" : true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true
+  },
+  "exclude": [
+    "node_modules",
+    "out"
+  ],
+  "include": [
+    "src/**/*.ts"
+  ]
+}

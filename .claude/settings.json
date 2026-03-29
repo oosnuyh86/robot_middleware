@@ -1,0 +1,12 @@
+{
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  },
+  "mcpServers": {
+        "mcpforunity": {
+        "type": "http",
+        "url": "http://127.0.0.1:8081/mcp"
+        }
+  },
+  "skipDangerousModePermissionPrompt": true
+}
