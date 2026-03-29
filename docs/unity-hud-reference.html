@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920, height=1080">
+<title>Robot Middleware — Unity HUD Reference</title>
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   ROBOT MIDDLEWARE — Unity HUD Reference Design
+   Resolution: 1920×1080 (Full HD)
+   Purpose: Pixel-perfect reference for Unity Canvas implementation
+
+   TRANSLATION KEY (CSS → Unity):
+   - px values → Unity UI rect sizes (1:1 at 1920×1080 canvas)
+   - font-size → Text.fontSize
+   - background → Image.color
+   - border → Outline component or Image with border sprite
+   - letter-spacing → Text doesn't support natively; use spaced strings
+   - gap/padding → LayoutGroup spacing/padding
+   ═══════════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  /* ── Exact theme tokens ── */
+  --bg-root:      #0a0c12;
+  --bg-surface:   #11131b;
+  --bg-elevated:  #171a25;
+  --bg-panel:     #0e1019;
+  --bg-hover:     #1d2030;
+
+  --border:       #252a3a;
+  --border-glow:  #1a3a4a;
+
+  --text-1:       #e8eaf0;
+  --text-2:       #7a8099;
+  --text-3:       #4d5470;
+
+  --cyan:         #00e5ff;
+  --cyan-dim:     #00b8d4;
+  --cyan-glow:    rgba(0, 229, 255, 0.08);
+  --cyan-glow-s:  rgba(0, 229, 255, 0.18);
+
+  --red:          #ff3d57;
+  --green:        #00e676;
+  --yellow:       #ffab00;
+  --purple:       #b388ff;
+  --blue:         #448aff;
+  --orange:       #ff9100;
+
+  /* ── Typography scale (Unity fontSize equivalents) ── */
+  --font-xs:   11px;   /* Log entries, timestamps */
+  --font-sm:   13px;   /* Secondary labels */
+  --font-md:   16px;   /* Body / default */
+  --font-lg:   20px;   /* Values, data readouts */
+  --font-xl:   28px;   /* State name, primary readouts */
+  --font-2xl:  36px;   /* Large state display */
+  --font-3xl:  14px;   /* Section headers (smaller, uppercase, tracked) */
+
+  /* ── Spacing (Unity padding/margins) ── */
+  --sp-xs:  4px;
+  --sp-sm:  8px;
+  --sp-md:  12px;
+  --sp-lg:  16px;
+  --sp-xl:  20px;
+  --sp-2xl: 24px;
+  --sp-3xl: 32px;
+}
+
+html, body {
+  width: 1920px;
+  height: 1080px;
+  overflow: hidden;
+  background: var(--bg-root);
+  font-family: 'DM Sans', sans-serif;
+  color: var(--text-1);
+}
+
+/* ══════════════════════════════════════════════
+   MASTER LAYOUT — Vertical stack
+   ══════════════════════════════════════════════ */
+
+.hud {
+  width: 1920px;
+  height: 1080px;
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+  gap: 8px;
+}
+
+/* ── HEADER BAR ──────────────────────────────
+   Height: 48px
+   Unity: Horizontal Layout Group, childAlignment=MiddleLeft
+   ───────────────────────────────────────────── */
+
+.header {
+  height: 48px;
+  min-height: 48px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.header-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--cyan);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.header-subtitle {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text-3);
+  letter-spacing: 1px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 230, 118, 0.08);
+  border: 1px solid rgba(0, 230, 118, 0.2);
+  border-radius: 4px;
+  padding: 6px 14px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--green);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.status-indicator.offline {
+  background: rgba(255, 61, 87, 0.08);
+  border-color: rgba(255, 61, 87, 0.2);
+  color: var(--red);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 8px var(--green);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.status-dot.offline {
+  background: var(--red);
+  box-shadow: 0 0 8px var(--red);
+  animation: none;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* ── MAIN CONTENT AREA ───────────────────────
+   Fills remaining height (flex: 1)
+   Unity: Horizontal Layout Group
+   ───────────────────────────────────────────── */
+
+.main {
+  flex: 1;
+  display: flex;
+  gap: 8px;
+  min-height: 0;
+}
+
+/* ── LEFT COLUMN (65%) ─── 3D Viewport ────── */
+
+.left-col {
+  flex: 65;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.viewport-panel {
+  flex: 1;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+}
+
+.viewport-label {
+  position: absolute;
+  top: 12px;
+  left: 16px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-3);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  z-index: 1;
+}
+
+.viewport-content {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(180deg, #2a3040 0%, #151820 60%, #1a1510 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.viewport-placeholder {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  color: var(--text-3);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+
+/* ── BOTTOM ROW (inside left col) ─────────── */
+
+.bottom-row {
+  height: 140px;
+  min-height: 140px;
+  display: flex;
+  gap: 8px;
+}
+
+/* ── STATE PANEL ─────────────────────────────
+   Width: ~320px
+   Unity: Vertical Layout Group
+   ───────────────────────────────────────────── */
+
+.state-panel {
+  width: 320px;
+  min-width: 320px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+}
+
+.panel-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-3);
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.state-badge {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.state-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.state-dot.pending    { background: var(--text-2); }
+.state-dot.scanning   { background: var(--blue); box-shadow: 0 0 12px var(--blue); }
+.state-dot.aligning   { background: var(--cyan); box-shadow: 0 0 12px var(--cyan); }
+.state-dot.recording  { background: var(--red); box-shadow: 0 0 12px var(--red); animation: pulse 1s ease-in-out infinite; }
+.state-dot.training   { background: var(--orange); box-shadow: 0 0 12px var(--orange); }
+.state-dot.validating { background: var(--purple); box-shadow: 0 0 12px var(--purple); }
+.state-dot.executing  { background: var(--green); box-shadow: 0 0 12px var(--green); }
+.state-dot.completed  { background: var(--green); }
+.state-dot.failed     { background: var(--red); }
+
+.state-name {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-1);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+
+.state-record {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  color: var(--text-2);
+  letter-spacing: 0.5px;
+}
+
+.state-record span {
+  color: var(--text-1);
+  font-weight: 500;
+}
+
+/* ── FLOW METER PANEL ────────────────────────
+   Width: ~280px
+   ───────────────────────────────────────────── */
+
+.flow-panel {
+  width: 280px;
+  min-width: 280px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+}
+
+.flow-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text-1);
+}
+
+.flow-value .unit {
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--text-2);
+  margin-left: 4px;
+}
+
+.flow-bar-track {
+  width: 100%;
+  height: 10px;
+  background: var(--bg-panel);
+  border-radius: 5px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.flow-bar-fill {
+  height: 100%;
+  border-radius: 5px;
+  transition: width 0.3s ease;
+  /* Color set dynamically: green < 33%, yellow 33-66%, red > 66% */
+  background: var(--yellow);
+  box-shadow: 0 0 8px var(--yellow);
+}
+
+.flow-status {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-3);
+  letter-spacing: 1px;
+}
+
+/* ── COMMAND LOG PANEL ───────────────────────
+   Fills remaining width
+   ───────────────────────────────────────────── */
+
+.log-panel {
+  flex: 1;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.log-entries {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.log-entry {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.log-entry .time {
+  color: var(--text-3);
+  margin-right: 8px;
+}
+
+.log-entry .cmd {
+  color: var(--cyan);
+  font-weight: 600;
+}
+
+.log-entry .state-change {
+  color: var(--yellow);
+}
+
+.log-entry .connection {
+  color: var(--green);
+}
+
+.log-entry .error {
+  color: var(--red);
+}
+
+/* ── RIGHT COLUMN (35%) ─── Sensor Data ───── */
+
+.right-col {
+  flex: 35;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ── REALSENSE PANEL ─────────────────────────
+   Unity: Vertical Layout Group with 2 RawImages
+   ───────────────────────────────────────────── */
+
+.sensor-panel {
+  flex: 1;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow: hidden;
+}
+
+.sensor-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sensor-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--cyan);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.sensor-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--green);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.sensor-status .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+}
+
+.feed-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  flex: 1;
+  min-height: 0;
+}
+
+.feed-box {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.feed-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-3);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.feed-image {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+}
+
+.feed-image.rgb {
+  background: linear-gradient(135deg, #1a3050, #2a4070, #1a3050);
+}
+
+.feed-image.depth {
+  background: linear-gradient(135deg, #401010, #802020, #401010);
+}
+
+/* ── TRACKER PANEL ───────────────────────────
+   Unity: Vertical Layout Group
+   ───────────────────────────────────────────── */
+
+.tracker-panel {
+  height: 220px;
+  min-height: 220px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.tracker-data {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.data-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.data-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-3);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  width: 40px;
+  flex-shrink: 0;
+}
+
+.data-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--text-1);
+  letter-spacing: 1px;
+}
+
+.data-value .axis {
+  color: var(--text-3);
+  font-size: 13px;
+  font-weight: 400;
+  margin-right: 2px;
+}
+
+.data-value .axis.x { color: var(--red); }
+.data-value .axis.y { color: var(--green); }
+.data-value .axis.z { color: var(--blue); }
+
+.tracker-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: rgba(0, 230, 118, 0.06);
+  border: 1px solid rgba(0, 230, 118, 0.15);
+  border-radius: 4px;
+}
+
+.tracker-status .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 8px var(--green);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.tracker-status-text {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--green);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+/* ── SCROLLBAR STYLING ─────────────────────── */
+
+.log-entries::-webkit-scrollbar {
+  width: 4px;
+}
+.log-entries::-webkit-scrollbar-track {
+  background: transparent;
+}
+.log-entries::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 2px;
+}
+
+/* ── UTILITY: Top-edge accent glow ─────────── */
+
+.glow-top {
+  position: relative;
+}
+
+.glow-top::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 20px;
+  right: 20px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+  opacity: 0.4;
+  z-index: 1;
+}
+</style>
+</head>
+<body>
+
+<div class="hud">
+
+  <!-- ═══ HEADER BAR ═══ -->
+  <div class="header">
+    <div class="header-left">
+      <span class="header-title">Robot Middleware</span>
+      <span class="header-subtitle">— Action Node v1.0</span>
+    </div>
+    <div class="header-right">
+      <div class="status-indicator">
+        <div class="status-dot"></div>
+        RELAY: ONLINE
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ MAIN CONTENT ═══ -->
+  <div class="main">
+
+    <!-- LEFT COLUMN: 3D Viewport + Bottom bar -->
+    <div class="left-col">
+
+      <!-- 3D Viewport -->
+      <div class="viewport-panel glow-top">
+        <div class="viewport-label">3 D &nbsp; V I E W P O R T</div>
+        <div class="viewport-content">
+          <span class="viewport-placeholder">Render Texture</span>
+        </div>
+      </div>
+
+      <!-- Bottom Row: State + Flow + Log -->
+      <div class="bottom-row">
+
+        <!-- State Panel -->
+        <div class="state-panel">
+          <div class="panel-label">S T A T E</div>
+          <div class="state-badge">
+            <div class="state-dot scanning"></div>
+            <span class="state-name">Scanning</span>
+          </div>
+          <div class="state-record">Record: <span>69c869ec...74024</span></div>
+        </div>
+
+        <!-- Flow Meter -->
+        <div class="flow-panel">
+          <div class="panel-label">F L O W</div>
+          <div class="flow-value">52.3<span class="unit">ml/min</span></div>
+          <div class="flow-bar-track">
+            <div class="flow-bar-fill" style="width: 52.3%;"></div>
+          </div>
+          <div class="flow-status">Alicat MC-500 / COM3</div>
+        </div>
+
+        <!-- Command Log -->
+        <div class="log-panel">
+          <div class="panel-label">C O M M A N D &nbsp; L O G</div>
+          <div class="log-entries">
+            <div class="log-entry"><span class="time">[09:57:42]</span> <span class="connection">Relay connected</span></div>
+            <div class="log-entry"><span class="time">[09:57:44]</span> Server initialized. Address: middleware</div>
+            <div class="log-entry"><span class="time">[09:57:48]</span> <span class="connection">Dashboard connected</span></div>
+            <div class="log-entry"><span class="time">[09:58:01]</span> <span class="cmd">CMD: START_SCAN</span> <span class="state-change">State: PENDING → SCANNING</span></div>
+            <div class="log-entry"><span class="time">[09:58:01]</span> ACK sent: START_SCAN</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN: Sensor Data -->
+    <div class="right-col">
+
+      <!-- RealSense Panel -->
+      <div class="sensor-panel glow-top">
+        <div class="sensor-header">
+          <span class="sensor-title">RealSense D435i</span>
+          <div class="sensor-status">
+            <div class="dot"></div>
+            Streaming
+          </div>
+        </div>
+        <div class="feed-grid">
+          <div class="feed-box">
+            <div class="feed-label">R G B</div>
+            <div class="feed-image rgb"></div>
+          </div>
+          <div class="feed-box">
+            <div class="feed-label">D E P T H</div>
+            <div class="feed-image depth"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Vive Tracker Panel -->
+      <div class="tracker-panel glow-top">
+        <div class="sensor-header">
+          <span class="sensor-title">Vive Tracker</span>
+          <div class="sensor-status">
+            <div class="dot"></div>
+            Active
+          </div>
+        </div>
+        <div class="tracker-data">
+          <div class="data-row">
+            <span class="data-label">POS</span>
+            <span class="data-value">
+              <span class="axis x">x</span>1.247
+              &nbsp;
+              <span class="axis y">y</span>0.832
+              &nbsp;
+              <span class="axis z">z</span>-0.156
+            </span>
+          </div>
+          <div class="data-row">
+            <span class="data-label">ROT</span>
+            <span class="data-value">
+              <span class="axis x">x</span>12.4&deg;
+              &nbsp;
+              <span class="axis y">y</span>-45.2&deg;
+              &nbsp;
+              <span class="axis z">z</span>3.1&deg;
+            </span>
+          </div>
+        </div>
+        <div class="tracker-status">
+          <div class="dot"></div>
+          <span class="tracker-status-text">Tracking</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
