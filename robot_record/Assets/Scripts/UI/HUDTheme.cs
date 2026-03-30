@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 using RobotMiddleware.Models;
 
 namespace RobotMiddleware.UI
@@ -86,22 +87,26 @@ namespace RobotMiddleware.UI
         public const float TrackerPanelHeight = 220f;
         public const float RootPadding       = 8f;
         public const float PanelGap          = 8f;
-        public const float LeftColFlex       = 65f;
-        public const float RightColFlex      = 35f;
+        public const float LeftColFlex       = 60f;
+        public const float RightColFlex      = 40f;
 
-        // ── Font ──
-        private static Font _monoFont;
-        public static Font MonoFont
+        // ── Font (TextMeshPro) ──
+        private static TMP_FontAsset _tmpFont;
+        public static TMP_FontAsset TMPFont
         {
             get
             {
-                if (_monoFont == null)
+                if (_tmpFont == null)
                 {
-                    _monoFont = Font.CreateDynamicFontFromOSFont("Consolas", 14);
-                    if (_monoFont == null)
-                        _monoFont = Font.CreateDynamicFontFromOSFont("Courier New", 14);
+                    // Try to load LiberationSans SDF (built-in TMP font)
+                    _tmpFont = Resources.Load<TMP_FontAsset>("Fonts & Materials/LiberationSans SDF");
+                    if (_tmpFont == null)
+                    {
+                        // Fallback: find any available TMP font
+                        _tmpFont = TMP_Settings.defaultFontAsset;
+                    }
                 }
-                return _monoFont;
+                return _tmpFont;
             }
         }
 
@@ -189,22 +194,25 @@ namespace RobotMiddleware.UI
         }
 
         /// <summary>
-        /// Universal text factory. All HUD text goes through here.
+        /// Universal text factory using TextMeshPro for crisp rendering.
         /// </summary>
-        public static Text CreateText(string name, Transform parent, string text, int fontSize, Color color,
-            TextAnchor alignment = TextAnchor.MiddleLeft, bool bold = false)
+        public static TextMeshProUGUI CreateText(string name, Transform parent, string text, int fontSize, Color color,
+            TextAlignmentOptions alignment = TextAlignmentOptions.MidlineLeft, bool bold = false)
         {
-            var go = new GameObject(name, typeof(RectTransform), typeof(CanvasRenderer), typeof(Text));
+            var go = new GameObject(name, typeof(RectTransform), typeof(CanvasRenderer));
             go.transform.SetParent(parent, false);
-            var t = go.GetComponent<Text>();
-            t.font = MonoFont;
+            var t = go.AddComponent<TextMeshProUGUI>();
+            t.font = TMPFont;
             t.fontSize = fontSize;
             t.color = color;
             t.text = text;
             t.alignment = alignment;
-            t.fontStyle = bold ? FontStyle.Bold : FontStyle.Normal;
-            t.horizontalOverflow = HorizontalWrapMode.Overflow;
-            t.verticalOverflow = VerticalWrapMode.Overflow;
+            t.fontStyle = bold ? FontStyles.Bold : FontStyles.Normal;
+            t.overflowMode = TextOverflowModes.Overflow;
+            t.textWrappingMode = TextWrappingModes.NoWrap;
+            t.richText = true;
+            // Monospace feel: slight character spacing
+            t.characterSpacing = 1.5f;
             return t;
         }
 

@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 using RobotMiddleware.Controller;
 using RobotMiddleware.Recording;
 using RobotMiddleware.Sensors;
@@ -24,25 +25,25 @@ namespace RobotMiddleware.UI
 
         // ── Header ──
         private Image _relayDot;
-        private Text _relayLabel;
+        private TextMeshProUGUI _relayLabel;
 
         // ── 3D Viewport ──
         private RawImage _viewportImage;
         private Camera _secondaryCamera;
         private RenderTexture _viewportRT;
 
-        // ── Inline UI references (no panel MonoBehaviours) ──
+        // ── Inline UI references (TextMeshPro) ──
         private Image _stateDot;
-        private Text _stateNameText;
-        private Text _recordIdText;
-        private Text _flowValueText;
+        private TextMeshProUGUI _stateNameText;
+        private TextMeshProUGUI _recordIdText;
+        private TextMeshProUGUI _flowValueText;
         private Image _flowBarFill;
-        private Text _flowStatusText;
-        private Text _logText;
-        private Text _posValueText;
-        private Text _rotValueText;
+        private TextMeshProUGUI _flowStatusText;
+        private TextMeshProUGUI _logText;
+        private TextMeshProUGUI _posValueText;
+        private TextMeshProUGUI _rotValueText;
         private Image _trackingDot;
-        private Text _trackingStatusText;
+        private TextMeshProUGUI _trackingStatusText;
         private RawImage _rgbImage;
         private RawImage _depthImage;
         private System.Collections.Generic.List<string> _logEntries = new System.Collections.Generic.List<string>();
@@ -165,7 +166,7 @@ namespace RobotMiddleware.UI
 
             // Title: 15px, Bold, cyan
             var title = HUDTheme.CreateText("Title", inner, "ROBOT MIDDLEWARE",
-                HUDTheme.FontHeaderTitle, HUDTheme.Cyan, TextAnchor.MiddleLeft, true);
+                HUDTheme.FontHeaderTitle, HUDTheme.Cyan, TextAlignmentOptions.MidlineLeft, true);
             title.gameObject.AddComponent<LayoutElement>().preferredWidth = 220f;
 
             AddSpacer(inner, 16f);
@@ -196,7 +197,7 @@ namespace RobotMiddleware.UI
             _relayDot.gameObject.AddComponent<LayoutElement>().preferredWidth = 8f;
 
             _relayLabel = HUDTheme.CreateText("RelayLabel", badge.transform, "RELAY: OFFLINE",
-                HUDTheme.FontStatusIndicator, HUDTheme.Text2, TextAnchor.MiddleLeft, true);
+                HUDTheme.FontStatusIndicator, HUDTheme.Text2, TextAlignmentOptions.MidlineLeft, true);
             _relayLabel.gameObject.AddComponent<LayoutElement>().flexibleWidth = 1f;
         }
 
@@ -214,7 +215,7 @@ namespace RobotMiddleware.UI
             // Overlay label at top-left
             var label = HUDTheme.CreateText("VPLabel", inner,
                 HUDTheme.SpaceOut("3D VIEWPORT"), HUDTheme.FontXS, HUDTheme.Text3,
-                TextAnchor.UpperLeft, true);
+                TextAlignmentOptions.TopLeft, true);
             var labelRect = label.GetComponent<RectTransform>();
             labelRect.anchorMin = new Vector2(0, 1);
             labelRect.anchorMax = new Vector2(0, 1);
@@ -300,7 +301,7 @@ namespace RobotMiddleware.UI
             // Panel label: 11px, SemiBold, text-3
             var label = HUDTheme.CreateText("StateLabel", inner,
                 HUDTheme.SpaceOut("STATE"), HUDTheme.FontXS, HUDTheme.Text3,
-                TextAnchor.MiddleLeft, true);
+                TextAlignmentOptions.MidlineLeft, true);
             label.gameObject.AddComponent<LayoutElement>().preferredHeight = 16f;
 
             // State badge row: dot + name
@@ -323,13 +324,13 @@ namespace RobotMiddleware.UI
 
             // State name: 28px, Bold, text-1
             var stateNameText = HUDTheme.CreateText("StateName", badgeRow.transform, "PENDING",
-                HUDTheme.FontXL, HUDTheme.Text1, TextAnchor.MiddleLeft, true);
+                HUDTheme.FontXL, HUDTheme.Text1, TextAlignmentOptions.MidlineLeft, true);
             stateNameText.gameObject.AddComponent<LayoutElement>().flexibleWidth = 1f;
 
             // Record ID: 13px, text-2
             var recordIdText = HUDTheme.CreateText("RecordId", inner, "Record: \u2014",
                 HUDTheme.FontSM, HUDTheme.Text2);
-            recordIdText.supportRichText = true;
+            recordIdText.richText = true;
             recordIdText.gameObject.AddComponent<LayoutElement>().preferredHeight = 18f;
 
             // Store references for inline updates
@@ -360,7 +361,7 @@ namespace RobotMiddleware.UI
             // Panel label
             var label = HUDTheme.CreateText("FlowLabel", inner,
                 HUDTheme.SpaceOut("FLOW"), HUDTheme.FontXS, HUDTheme.Text3,
-                TextAnchor.MiddleLeft, true);
+                TextAlignmentOptions.MidlineLeft, true);
             label.gameObject.AddComponent<LayoutElement>().preferredHeight = 16f;
 
             // Flow value row: value + unit
@@ -377,12 +378,12 @@ namespace RobotMiddleware.UI
 
             // Flow value: 32px, Bold, text-1
             var flowValueText = HUDTheme.CreateText("FlowValue", valueRow.transform, "0.0",
-                HUDTheme.Font2XL, HUDTheme.Text1, TextAnchor.LowerLeft, true);
+                HUDTheme.Font2XL, HUDTheme.Text1, TextAlignmentOptions.BottomLeft, true);
             flowValueText.gameObject.AddComponent<LayoutElement>().preferredHeight = 38f;
 
             // Flow unit: 16px, Regular, text-2
             var flowUnitText = HUDTheme.CreateText("FlowUnit", valueRow.transform, "ml/min",
-                HUDTheme.FontMD, HUDTheme.Text2, TextAnchor.LowerLeft);
+                HUDTheme.FontMD, HUDTheme.Text2, TextAlignmentOptions.BottomLeft);
             flowUnitText.gameObject.AddComponent<LayoutElement>().preferredHeight = 38f;
 
             // Flow bar track
@@ -433,15 +434,15 @@ namespace RobotMiddleware.UI
             // Panel label
             var label = HUDTheme.CreateText("LogLabel", inner,
                 HUDTheme.SpaceOut("COMMAND LOG"), HUDTheme.FontXS, HUDTheme.Text3,
-                TextAnchor.MiddleLeft, true);
+                TextAlignmentOptions.MidlineLeft, true);
             label.gameObject.AddComponent<LayoutElement>().preferredHeight = 16f;
 
             // Log text fills remaining space
             var logText = HUDTheme.CreateText("LogEntries", inner, "",
-                HUDTheme.FontLogEntry, HUDTheme.Text2, TextAnchor.LowerLeft);
-            logText.supportRichText = true;
-            logText.verticalOverflow = VerticalWrapMode.Overflow;
-            logText.horizontalOverflow = HorizontalWrapMode.Overflow;
+                HUDTheme.FontLogEntry, HUDTheme.Text2, TextAlignmentOptions.BottomLeft);
+            logText.richText = true;
+            logText.overflowMode = TextOverflowModes.Overflow;
+            logText.textWrappingMode = TextWrappingModes.Normal;
             logText.gameObject.AddComponent<LayoutElement>().flexibleHeight = 1f;
 
             // Store references for inline updates
@@ -489,20 +490,23 @@ namespace RobotMiddleware.UI
 
             var rsTitle = HUDTheme.CreateText("SensorTitle", rsHeaderRow.transform,
                 HUDTheme.SpaceOut("REALSENSE D435I"), HUDTheme.FontSM, HUDTheme.Cyan,
-                TextAnchor.MiddleLeft, true);
+                TextAlignmentOptions.MidlineLeft, true);
             rsTitle.gameObject.AddComponent<LayoutElement>().flexibleWidth = 1f;
 
             var rsDot = HUDTheme.CreateDot("SensorDot", rsHeaderRow.transform, HUDTheme.Green, 6f);
             rsDot.gameObject.AddComponent<LayoutElement>().preferredWidth = 6f;
 
             var rsStatusLabel = HUDTheme.CreateText("SensorStatus", rsHeaderRow.transform,
-                "STREAMING", HUDTheme.FontXS, HUDTheme.Green, TextAnchor.MiddleRight);
+                "STREAMING", HUDTheme.FontXS, HUDTheme.Green, TextAlignmentOptions.MidlineRight);
             rsStatusLabel.gameObject.AddComponent<LayoutElement>().preferredWidth = 80f;
 
             // Feed grid: 2 columns (RGB + Depth)
+            // Feed grid: 2 columns side by side, fixed height for 4:3 aspect
             var feedGrid = new GameObject("FeedGrid", typeof(RectTransform));
             feedGrid.transform.SetParent(rsInner, false);
-            feedGrid.AddComponent<LayoutElement>().flexibleHeight = 1f;
+            var feedGridLE = feedGrid.AddComponent<LayoutElement>();
+            feedGridLE.preferredHeight = 160f; // Fixed height — not stretchy
+            feedGridLE.flexibleHeight = 0f;
 
             var gridHL = feedGrid.AddComponent<HorizontalLayoutGroup>();
             gridHL.spacing = HUDTheme.PanelGap;
@@ -541,14 +545,14 @@ namespace RobotMiddleware.UI
 
             var vtTitle = HUDTheme.CreateText("TrackerTitle", vtHeaderRow.transform,
                 HUDTheme.SpaceOut("VIVE TRACKER"), HUDTheme.FontSM, HUDTheme.Cyan,
-                TextAnchor.MiddleLeft, true);
+                TextAlignmentOptions.MidlineLeft, true);
             vtTitle.gameObject.AddComponent<LayoutElement>().flexibleWidth = 1f;
 
             var vtDot = HUDTheme.CreateDot("TrackerActiveDot", vtHeaderRow.transform, HUDTheme.Green, 6f);
             vtDot.gameObject.AddComponent<LayoutElement>().preferredWidth = 6f;
 
             var vtStatusLabel = HUDTheme.CreateText("TrackerActiveLabel", vtHeaderRow.transform,
-                "ACTIVE", HUDTheme.FontXS, HUDTheme.Green, TextAnchor.MiddleRight);
+                "ACTIVE", HUDTheme.FontXS, HUDTheme.Green, TextAlignmentOptions.MidlineRight);
             vtStatusLabel.gameObject.AddComponent<LayoutElement>().preferredWidth = 60f;
 
             // Tracker data rows
@@ -583,7 +587,7 @@ namespace RobotMiddleware.UI
 
             var trackingStatusText = HUDTheme.CreateText("TrackingStatus", statusBar.transform,
                 "TRACKING", HUDTheme.FontTrackerStatus, HUDTheme.Green,
-                TextAnchor.MiddleLeft, true);
+                TextAlignmentOptions.MidlineLeft, true);
             trackingStatusText.gameObject.AddComponent<LayoutElement>().flexibleWidth = 1f;
 
             // Store references for inline updates
@@ -599,7 +603,7 @@ namespace RobotMiddleware.UI
 
         // ── Feed box builder (returns label Text, outputs RawImage) ──
 
-        private Text BuildFeedBox(Transform parent, string labelText, out RawImage feedImage)
+        private TextMeshProUGUI BuildFeedBox(Transform parent, string labelText, out RawImage feedImage)
         {
             var box = HUDTheme.CreateBorderPanel("Feed_" + labelText, parent, HUDTheme.BgPanel, HUDTheme.Border);
             box.AddComponent<LayoutElement>().flexibleWidth = 1f;
@@ -615,7 +619,7 @@ namespace RobotMiddleware.UI
             // Feed label: 10px, SemiBold, text-3, uppercase spaced
             var label = HUDTheme.CreateText("FeedLabel", inner,
                 HUDTheme.SpaceOut(labelText), HUDTheme.FontFeedLabel, HUDTheme.Text3,
-                TextAnchor.MiddleLeft, true);
+                TextAlignmentOptions.MidlineLeft, true);
             var labelLE = label.gameObject.AddComponent<LayoutElement>();
             labelLE.preferredHeight = 24f;
 
@@ -633,7 +637,7 @@ namespace RobotMiddleware.UI
         // ── Tracker data row builder ──
 
         private void BuildTrackerDataRow(Transform parent, string label,
-            out Text labelText, out Text valueText)
+            out TextMeshProUGUI labelText, out TextMeshProUGUI valueText)
         {
             var row = new GameObject("DataRow_" + label, typeof(RectTransform));
             row.transform.SetParent(parent, false);
@@ -649,13 +653,13 @@ namespace RobotMiddleware.UI
             // Axis label: 12px, Bold, text-3, 40px wide
             labelText = HUDTheme.CreateText("Label_" + label, row.transform,
                 label, HUDTheme.FontTrackerLabel, HUDTheme.Text3,
-                TextAnchor.MiddleLeft, true);
+                TextAlignmentOptions.MidlineLeft, true);
             labelText.gameObject.AddComponent<LayoutElement>().preferredWidth = 40f;
 
             // Value: 20px, Medium, text-1, rich text for colored axes
             valueText = HUDTheme.CreateText("Value_" + label, row.transform,
                 "", HUDTheme.FontLG, HUDTheme.Text1);
-            valueText.supportRichText = true;
+            valueText.richText = true;
             valueText.gameObject.AddComponent<LayoutElement>().flexibleWidth = 1f;
         }
 

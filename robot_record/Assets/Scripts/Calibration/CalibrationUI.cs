@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 using RobotMiddleware.UI;
 
 namespace RobotMiddleware.Calibration
@@ -11,14 +12,14 @@ namespace RobotMiddleware.Calibration
         [SerializeField] private Canvas _parentCanvas;
 
         private GameObject _panel;
-        private Text _titleText;
-        private Text _instructionText;
-        private Text _progressText;
-        private Text _resultText;
+        private TextMeshProUGUI _titleText;
+        private TextMeshProUGUI _instructionText;
+        private TextMeshProUGUI _progressText;
+        private TextMeshProUGUI _resultText;
         private Image[] _pointDots;
         private GameObject _captureButton;
         private GameObject _retryButton;
-        private Text _captureButtonText;
+        private TextMeshProUGUI _captureButtonText;
 
         private bool _isComputing;
         private float _spinnerAngle;
@@ -83,7 +84,7 @@ namespace RobotMiddleware.Calibration
             // Title
             _titleText = HUDTheme.CreateText("Title", inner,
                 HUDTheme.SpaceOut("Calibration"), HUDTheme.FontXL,
-                HUDTheme.Cyan, TextAnchor.MiddleCenter, true);
+                HUDTheme.Cyan, TextAlignmentOptions.Center, true);
             var titleRect = _titleText.GetComponent<RectTransform>();
             titleRect.anchorMin = new Vector2(0f, 1f);
             titleRect.anchorMax = new Vector2(1f, 1f);
@@ -93,7 +94,7 @@ namespace RobotMiddleware.Calibration
 
             // Instruction text
             _instructionText = HUDTheme.CreateText("Instruction", inner,
-                "", HUDTheme.FontSM, HUDTheme.TextSecondary, TextAnchor.MiddleCenter);
+                "", HUDTheme.FontSM, HUDTheme.TextSecondary, TextAlignmentOptions.Center);
             var instrRect = _instructionText.GetComponent<RectTransform>();
             instrRect.anchorMin = new Vector2(0f, 1f);
             instrRect.anchorMax = new Vector2(1f, 1f);
@@ -116,7 +117,7 @@ namespace RobotMiddleware.Calibration
 
             // Progress text
             _progressText = HUDTheme.CreateText("Progress", inner,
-                "", HUDTheme.FontMD, HUDTheme.TextPrimary, TextAnchor.MiddleCenter);
+                "", HUDTheme.FontMD, HUDTheme.TextPrimary, TextAlignmentOptions.Center);
             var progRect = _progressText.GetComponent<RectTransform>();
             progRect.anchorMin = new Vector2(0f, 1f);
             progRect.anchorMax = new Vector2(1f, 1f);
@@ -126,7 +127,7 @@ namespace RobotMiddleware.Calibration
 
             // Result text
             _resultText = HUDTheme.CreateText("Result", inner,
-                "", HUDTheme.FontMD, HUDTheme.SuccessGreen, TextAnchor.MiddleCenter);
+                "", HUDTheme.FontMD, HUDTheme.SuccessGreen, TextAlignmentOptions.Center);
             var resRect = _resultText.GetComponent<RectTransform>();
             resRect.anchorMin = new Vector2(0f, 1f);
             resRect.anchorMax = new Vector2(1f, 1f);
@@ -137,7 +138,7 @@ namespace RobotMiddleware.Calibration
             // Capture button
             _captureButton = CreateButton("CaptureBtn", inner, "Capture Point",
                 HUDTheme.Cyan, new Vector2(0f, -240f), OnCaptureClicked);
-            _captureButtonText = _captureButton.GetComponentInChildren<Text>();
+            _captureButtonText = _captureButton.GetComponentInChildren<TextMeshProUGUI>();
 
             // Retry button
             _retryButton = CreateButton("RetryBtn", inner, "Retry",
@@ -157,7 +158,7 @@ namespace RobotMiddleware.Calibration
             bgRect.sizeDelta = new Vector2(180f, 32f);
 
             var btnText = HUDTheme.CreateText(name + "_Label", bg.transform, label,
-                HUDTheme.FontSM, HUDTheme.BgRoot, TextAnchor.MiddleCenter, true);
+                HUDTheme.FontSM, HUDTheme.BgRoot, TextAlignmentOptions.Center, true);
             HUDTheme.StretchFill(btnText.GetComponent<RectTransform>());
 
             var button = bg.AddComponent<Button>();
