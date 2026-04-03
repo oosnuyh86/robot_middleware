@@ -8,7 +8,7 @@
         "com.unity.nuget.newtonsoft-json": "3.0.2",
         "com.unity.test-framework": "1.1.31"
       },
-      "hash": "3dd5ac77428608ce09015c88054bc103bb80eba9"
+      "hash": "940831fe8a474e92b96a5c183298b45843cf067e"
     },
     "com.unity.ai.inference": {
       "version": "2.5.0",
