@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using TMPro;
 using RobotMiddleware.Controller;
 using RobotMiddleware.Recording;
+using RobotMiddleware.Scanning;
 using RobotMiddleware.Sensors;
 
 namespace RobotMiddleware.UI
@@ -22,6 +23,7 @@ namespace RobotMiddleware.UI
         private RealSenseManager _realSenseManager;
         private ViveTrackerManager _viveTrackerManager;
         private FlowMeterManager _flowMeterManager;
+        private ScanManager _scanManager;
 
         // ── Header ──
         private Image _relayDot;
@@ -49,6 +51,16 @@ namespace RobotMiddleware.UI
         private System.Collections.Generic.List<string> _logEntries = new System.Collections.Generic.List<string>();
         private const int MaxLogEntries = 20;
 
+        // ── Scan panel UI ──
+        private GameObject _scanPanelRoot;
+        private Button _captureBackgroundBtn;
+        private Button _startStopScanBtn;
+        private TextMeshProUGUI _startStopScanLabel;
+        private Button _confirmBtn;
+        private Button _rescanBtn;
+        private TextMeshProUGUI _scanPointCountText;
+        private TextMeshProUGUI _scanStateText;
+
         private void Start()
         {
             _recordingManager = FindAnyObjectByType<RecordingManager>();
@@ -56,8 +68,9 @@ namespace RobotMiddleware.UI
             _realSenseManager = FindAnyObjectByType<RealSenseManager>();
             _viveTrackerManager = FindAnyObjectByType<ViveTrackerManager>();
             _flowMeterManager = FindAnyObjectByType<FlowMeterManager>();
+            _scanManager = FindAnyObjectByType<ScanManager>();
 
-            Debug.Log($"[HUDController] Found managers - Recording:{_recordingManager != null} MW:{_middlewareController != null} RS:{_realSenseManager != null} VT:{_viveTrackerManager != null} FM:{_flowMeterManager != null}");
+            Debug.Log($"[HUDController] Found managers - Recording:{_recordingManager != null} MW:{_middlewareController != null} RS:{_realSenseManager != null} VT:{_viveTrackerManager != null} FM:{_flowMeterManager != null} Scan:{_scanManager != null}");
 
             if (_realSenseManager != null && !_realSenseManager.IsStreaming)
                 _realSenseManager.StartStreaming();
@@ -277,6 +290,7 @@ namespace RobotMiddleware.UI
             hl.childControlHeight = true;
 
             BuildStatePanel(row.transform);
+            BuildScanPanel(row.transform);
             BuildFlowPanel(row.transform);
             BuildLogPanel(row.transform);
         }
@@ -339,6 +353,152 @@ namespace RobotMiddleware.UI
             _recordIdText = recordIdText;
             if (_recordingManager != null)
                 _recordingManager.OnStateChanged += OnStateChanged;
+        }
+
+        // ── SCAN PANEL (280px wide, hidden when not scanning) ──
+
+        private void BuildScanPanel(Transform parent)
+        {
+            _scanPanelRoot = HUDTheme.CreateBorderPanel("ScanPanel", parent, HUDTheme.BgSurface, HUDTheme.BorderGlow);
+            _scanPanelRoot.AddComponent<LayoutElement>().preferredWidth = 280f;
+
+            var inner = _scanPanelRoot.transform.GetChild(0);
+            var vl = inner.gameObject.AddComponent<VerticalLayoutGroup>();
+            vl.padding = new RectOffset(16, 16, 12, 12);
+            vl.spacing = 6f;
+            vl.childAlignment = TextAnchor.UpperLeft;
+            vl.childForceExpandWidth = true;
+            vl.childForceExpandHeight = false;
+            vl.childControlWidth = true;
+            vl.childControlHeight = true;
+
+            // Panel label
+            var label = HUDTheme.CreateText("ScanLabel", inner,
+                HUDTheme.SpaceOut("SCAN"), HUDTheme.FontXS, HUDTheme.Cyan,
+                TextAlignmentOptions.MidlineLeft, true);
+            label.gameObject.AddComponent<LayoutElement>().preferredHeight = 16f;
+
+            // Scan state text
+            _scanStateText = HUDTheme.CreateText("ScanState", inner, "IDLE",
+                HUDTheme.FontSM, HUDTheme.Text2);
+            _scanStateText.gameObject.AddComponent<LayoutElement>().preferredHeight = 18f;
+
+            // Point count
+            _scanPointCountText = HUDTheme.CreateText("ScanPointCount", inner, "0 points",
+                HUDTheme.FontMD, HUDTheme.Text1, TextAlignmentOptions.MidlineLeft, true);
+            _scanPointCountText.gameObject.AddComponent<LayoutElement>().preferredHeight = 22f;
+
+            // Capture Background button
+            _captureBackgroundBtn = CreateHUDButton(inner, "Capture BG", HUDTheme.Blue);
+            _captureBackgroundBtn.onClick.AddListener(OnCaptureBackgroundClicked);
+
+            // Start/Stop Scan button
+            _startStopScanBtn = CreateHUDButton(inner, "Start Scan", HUDTheme.Cyan);
+            _startStopScanLabel = _startStopScanBtn.GetComponentInChildren<TextMeshProUGUI>();
+            _startStopScanBtn.onClick.AddListener(OnStartStopScanClicked);
+
+            // Confirm / Rescan row
+            var confirmRow = new GameObject("ConfirmRow", typeof(RectTransform));
+            confirmRow.transform.SetParent(inner, false);
+            var confirmHL = confirmRow.AddComponent<HorizontalLayoutGroup>();
+            confirmHL.spacing = 6f;
+            confirmHL.childForceExpandWidth = true;
+            confirmHL.childForceExpandHeight = true;
+            confirmHL.childControlWidth = true;
+            confirmHL.childControlHeight = true;
+            confirmRow.AddComponent<LayoutElement>().preferredHeight = 28f;
+
+            _confirmBtn = CreateHUDButton(confirmRow.transform, "Confirm", HUDTheme.Green);
+            _confirmBtn.onClick.AddListener(OnConfirmClicked);
+
+            _rescanBtn = CreateHUDButton(confirmRow.transform, "Rescan", HUDTheme.Yellow);
+            _rescanBtn.onClick.AddListener(OnRescanClicked);
+
+            // Subscribe to scan state changes
+            if (_scanManager != null)
+                _scanManager.OnScanStateChanged += OnScanStateChanged;
+
+            // Initial visibility
+            UpdateScanPanelVisibility(ScanState.Idle);
+        }
+
+        private Button CreateHUDButton(Transform parent, string text, Color accentColor)
+        {
+            var btnGO = HUDTheme.CreatePanel("Btn_" + text, parent, new Color(accentColor.r, accentColor.g, accentColor.b, 0.15f));
+            btnGO.AddComponent<LayoutElement>().preferredHeight = 28f;
+
+            var btn = btnGO.AddComponent<Button>();
+            var colors = btn.colors;
+            colors.normalColor = new Color(accentColor.r, accentColor.g, accentColor.b, 0.15f);
+            colors.highlightedColor = new Color(accentColor.r, accentColor.g, accentColor.b, 0.30f);
+            colors.pressedColor = new Color(accentColor.r, accentColor.g, accentColor.b, 0.50f);
+            colors.disabledColor = new Color(0.2f, 0.2f, 0.2f, 0.3f);
+            btn.colors = colors;
+
+            var label = HUDTheme.CreateText("Label", btnGO.transform, text,
+                HUDTheme.FontXS, accentColor, TextAlignmentOptions.Center, true);
+            HUDTheme.StretchFill(label.GetComponent<RectTransform>());
+
+            return btn;
+        }
+
+        private void OnCaptureBackgroundClicked()
+        {
+            if (_scanManager != null)
+                _scanManager.CaptureBackground();
+        }
+
+        private void OnStartStopScanClicked()
+        {
+            if (_scanManager == null) return;
+
+            if (_scanManager.CurrentState == ScanState.Ready)
+                _scanManager.StartScan();
+            else if (_scanManager.CurrentState == ScanState.Scanning)
+                _scanManager.StopScan();
+        }
+
+        private void OnConfirmClicked()
+        {
+            if (_scanManager != null)
+                _scanManager.ConfirmScan();
+        }
+
+        private void OnRescanClicked()
+        {
+            if (_scanManager != null)
+                _scanManager.Rescan();
+        }
+
+        private void OnScanStateChanged(ScanState state)
+        {
+            UpdateScanPanelVisibility(state);
+
+            if (_scanStateText != null)
+                _scanStateText.text = state.ToString().ToUpperInvariant();
+        }
+
+        private void UpdateScanPanelVisibility(ScanState state)
+        {
+            if (_scanPanelRoot == null) return;
+
+            bool showPanel = _recordingManager != null
+                && _recordingManager.CurrentState == Models.RecordingState.Scanning;
+            _scanPanelRoot.SetActive(showPanel || state != ScanState.Idle);
+
+            // Button states
+            bool idle = state == ScanState.Idle;
+            bool ready = state == ScanState.Ready;
+            bool scanning = state == ScanState.Scanning;
+            bool preview = state == ScanState.Preview;
+
+            _captureBackgroundBtn.interactable = idle;
+            _startStopScanBtn.interactable = ready || scanning;
+            _confirmBtn.interactable = preview;
+            _rescanBtn.interactable = preview;
+
+            if (_startStopScanLabel != null)
+                _startStopScanLabel.text = scanning ? "Stop Scan" : "Start Scan";
         }
 
         // ── FLOW METER PANEL (280px wide) ──
@@ -689,6 +849,7 @@ namespace RobotMiddleware.UI
         {
             UpdateRelayStatus();
             UpdateSensors();
+            UpdateScanPanel();
         }
 
         private void UpdateRelayStatus()
@@ -751,6 +912,15 @@ namespace RobotMiddleware.UI
                     _rgbImage.texture = _realSenseManager.ColorTexture;
                 if (_depthImage != null && _realSenseManager.DepthTexture != null)
                     _depthImage.texture = _realSenseManager.DepthTexture;
+            }
+        }
+
+        private void UpdateScanPanel()
+        {
+            if (_scanManager != null && _scanPointCountText != null
+                && _scanManager.CurrentState == ScanState.Scanning)
+            {
+                _scanPointCountText.text = $"{_scanManager.PointCount:N0} points";
             }
         }
 
