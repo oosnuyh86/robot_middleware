@@ -133,6 +133,18 @@ namespace RobotMiddleware.Controller
                     case CommandAction.START_VALIDATING:
                         _recordingManager.StartValidating();
                         break;
+                    case CommandAction.CAPTURE_BACKGROUND:
+                        _recordingManager.CaptureBackground();
+                        break;
+                    case CommandAction.START_OBJECT_SCAN:
+                        _recordingManager.StartObjectScan();
+                        break;
+                    case CommandAction.CONFIRM_SCAN:
+                        _recordingManager.ConfirmScan();
+                        break;
+                    case CommandAction.RESCAN:
+                        _recordingManager.Rescan();
+                        break;
                     default:
                         Debug.LogWarning($"[MiddlewareController] Unhandled action: {action}");
                         break;
@@ -145,6 +157,11 @@ namespace RobotMiddleware.Controller
             {
                 Debug.LogError($"[MiddlewareController] Invalid action: {cmd.action} - {ex.Message}");
                 SendError(cmd.id, $"Invalid action: {cmd.action}");
+            }
+            catch (InvalidOperationException ex)
+            {
+                Debug.LogWarning($"[MiddlewareController] State-gate rejection for {cmd.action}: {ex.Message}");
+                SendError(cmd.id, ex.Message);
             }
         }
 

@@ -1,6 +1,16 @@
 {
+  "scopedRegistries": [
+    {
+      "name": "VIVE OpenXR Plugin",
+      "url": "https://npm-registry.vive.com",
+      "scopes": [
+        "com.htc.upm"
+      ]
+    }
+  ],
   "dependencies": {
     "com.coplaydev.unity-mcp": "https://github.com/CoplayDev/unity-mcp.git?path=/MCPForUnity#main",
+    "com.htc.upm.vive.openxr": "https://github.com/ViveSoftware/VIVE-OpenXR.git?path=com.htc.upm.vive.openxr",
     "com.unity.ai.navigation": "2.0.11",
     "com.unity.collab-proxy": "2.11.4",
     "com.unity.ide.rider": "3.0.39",
@@ -15,6 +25,7 @@
     "com.unity.timeline": "1.8.11",
     "com.unity.ugui": "2.0.0",
     "com.unity.visualscripting": "1.9.11",
+    "com.unity.xr.openxr": "1.16.1",
     "com.unity.modules.accessibility": "1.0.0",
     "com.unity.modules.adaptiveperformance": "1.0.0",
     "com.unity.modules.ai": "1.0.0",

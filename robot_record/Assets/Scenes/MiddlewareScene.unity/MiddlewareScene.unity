@@ -465,6 +465,54 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &309448204
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 309448206}
+  - component: {fileID: 309448205}
+  m_Layer: 0
+  m_Name: ScanManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &309448205
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 309448204}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d104e493768a3ab489f38194e5561de4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RobotMiddleware.Scanning.ScanManager
+  _depthThresholdMm: 20
+  _minScanPoints: 2000
+  _minDepthVariance: 0.0001
+  _minScanVolume: 0.000001
+--- !u!4 &309448206
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 309448204}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &335466988
 GameObject:
   m_ObjectHideFlags: 8
@@ -1132,7 +1180,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2180261a74162f54495ee653b77053d1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RobotMiddleware.Sensors.ViveTrackerManager
-  _trackerIndex: 0
+  _actionAssetOverride: {fileID: 0}
+  _resourcesPath: ViveTrackerActions
+  _actionMapName: Tracker
+  _devicePoseActionName: DevicePose
+  _positionActionName: DevicePosition
+  _rotationActionName: DeviceRotation
+  _isTrackedActionName: IsTracked
+  _trackingStateActionName: TrackingState
+  _trackerRole: handheld_object
+  _requireHardware: 0
+  FallbackDelaySeconds: 3
   _orbitRadius: 0.3
   _orbitSpeed: 0.5
 --- !u!114 &517782609
@@ -5783,3 +5841,4 @@ SceneRoots:
   - {fileID: 1543548387}
   - {fileID: 252557125}
   - {fileID: 1787949719}
+  - {fileID: 309448206}

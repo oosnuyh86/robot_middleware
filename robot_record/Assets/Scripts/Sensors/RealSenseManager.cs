@@ -38,6 +38,7 @@ namespace RobotMiddleware.Sensors
         public bool IsStreaming { get; private set; }
         public Texture2D ColorTexture { get; private set; }
         public Texture2D DepthTexture { get; private set; }
+        public bool IsStub { get; private set; }
 
 #if REALSENSE_SDK
         private bool _stubMode;
@@ -66,7 +67,7 @@ namespace RobotMiddleware.Sensors
             try
             {
                 _pipeline = new Pipeline();
-                var cfg = new Config();
+                var cfg = new Intel.RealSense.Config();
                 cfg.EnableStream(Stream.Color, _streamWidth, _streamHeight, Format.Rgb8, _framerate);
                 cfg.EnableStream(Stream.Depth, _streamWidth, _streamHeight, Format.Z16, _framerate);
 
@@ -110,6 +111,7 @@ namespace RobotMiddleware.Sensors
 #endif
 
             IsStreaming = false;
+            IsStub = false;
             Debug.Log("[RealSenseManager] Streaming stopped");
         }
 
@@ -225,6 +227,8 @@ namespace RobotMiddleware.Sensors
 
             try
             {
+                if (_pipeline == null) return;
+
                 FrameSet frames;
                 if (!_pipeline.TryWaitForFrames(out frames, 50))
                     return; // No frame ready yet, avoid blocking the main thread
@@ -283,7 +287,8 @@ namespace RobotMiddleware.Sensors
             FillTextureSolid(DepthTexture, new Color(0.5f, 0.5f, 0.5f));
 
             IsStreaming = true;
-            Debug.Log($"[RealSenseManager] Stub mode started ({_streamWidth}x{_streamHeight} @ {_framerate}fps)");
+            IsStub = true;
+            Debug.Log($"[RealSenseManager] Stub mode started ({_streamWidth}x{_streamHeight} @ {_framerate}fps) [IsStub=true, scanning disabled]");
         }
 
         private void UpdateStub()

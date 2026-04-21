@@ -3,6 +3,7 @@ using System.Collections;
 using UnityEngine;
 using RobotMiddleware.Models;
 using RobotMiddleware.API;
+using RobotMiddleware.Scanning;
 
 namespace RobotMiddleware.Recording
 {
@@ -15,6 +16,7 @@ namespace RobotMiddleware.Recording
         public string RecordId { get; private set; }
 
         private MiddlewareClient _middlewareClient;
+        [SerializeField] private ScanManager _scanManager;
 
         private void Awake()
         {
@@ -23,6 +25,8 @@ namespace RobotMiddleware.Recording
             {
                 _middlewareClient = gameObject.AddComponent<MiddlewareClient>();
             }
+
+            if (_scanManager == null) _scanManager = FindAnyObjectByType<ScanManager>();
 
             CurrentState = RecordingState.Idle;
         }
@@ -218,6 +222,66 @@ namespace RobotMiddleware.Recording
             OnStateChanged?.Invoke(RecordingState.Idle);
             Debug.Log("[RecordingManager] Reset to Idle");
             yield return null;
+        }
+
+        public void CaptureBackground()
+        {
+            if (CurrentState != RecordingState.Scanning)
+            {
+                throw new InvalidOperationException(
+                    $"CaptureBackground requires Scanning state, current is {CurrentState}");
+            }
+            if (_scanManager == null)
+            {
+                Debug.LogError("[RecordingManager] ScanManager is null, cannot CaptureBackground");
+                return;
+            }
+            _scanManager.CaptureBackground();
+        }
+
+        public void StartObjectScan()
+        {
+            if (CurrentState != RecordingState.Scanning)
+            {
+                throw new InvalidOperationException(
+                    $"StartObjectScan requires Scanning state, current is {CurrentState}");
+            }
+            if (_scanManager == null)
+            {
+                Debug.LogError("[RecordingManager] ScanManager is null, cannot StartObjectScan");
+                return;
+            }
+            _scanManager.StartScan();
+        }
+
+        public void ConfirmScan()
+        {
+            if (CurrentState != RecordingState.Scanning)
+            {
+                throw new InvalidOperationException(
+                    $"ConfirmScan requires Scanning state, current is {CurrentState}");
+            }
+            if (_scanManager == null)
+            {
+                Debug.LogError("[RecordingManager] ScanManager is null, cannot ConfirmScan");
+                return;
+            }
+            _scanManager.ConfirmScan();
+        }
+
+        public void Rescan()
+        {
+            if (CurrentState != RecordingState.Scanning)
+            {
+                throw new InvalidOperationException(
+                    $"Rescan requires Scanning state, current is {CurrentState}");
+            }
+            if (_scanManager == null)
+            {
+                Debug.LogError("[RecordingManager] ScanManager is null, cannot Rescan");
+                return;
+            }
+            _scanManager.Rescan();
         }
     }
 }

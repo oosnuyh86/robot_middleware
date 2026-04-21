@@ -8,6 +8,7 @@ namespace RobotMiddleware.Scanning
 {
     public static class PointCloudExporter
     {
+        public const int MinPlyVertices = 1000;
         /// <summary>
         /// Converts masked depth pixels to 3D points using the pinhole camera model.
         /// Only pixels where mask[i] == true are projected.
@@ -74,6 +75,10 @@ namespace RobotMiddleware.Scanning
         /// </summary>
         public static byte[] ExportPLY(List<Vector3> points, List<Color32> colors)
         {
+            if (points.Count < MinPlyVertices)
+                throw new InvalidOperationException(
+                    $"[PointCloudExporter] Too few vertices ({points.Count}) for PLY export; minimum is {MinPlyVertices}");
+
             var sb = new StringBuilder();
 
             // PLY header

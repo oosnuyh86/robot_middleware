@@ -32,7 +32,11 @@ export type CommandAction =
   | "START_VALIDATING"
   | "APPROVE_VALIDATION"
   | "START_EXECUTION"
-  | "MARK_FAILED";
+  | "MARK_FAILED"
+  | "CAPTURE_BACKGROUND"
+  | "START_OBJECT_SCAN"
+  | "CONFIRM_SCAN"
+  | "RESCAN";
 
 /**
  * Wire format matching Unity's CommandMessage class.

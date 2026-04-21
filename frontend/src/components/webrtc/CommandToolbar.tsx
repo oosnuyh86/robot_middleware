@@ -21,6 +21,9 @@ interface CommandToolbarProps {
   currentState: RecordState;
   onAdvanceState: (nextState: RecordState) => void;
   onFail: (reason: string) => void;
+  onScanSubCommand?: (
+    action: "CAPTURE_BACKGROUND" | "START_OBJECT_SCAN" | "CONFIRM_SCAN" | "RESCAN",
+  ) => void;
   disabled?: boolean;
 }
 
@@ -28,6 +31,7 @@ export function CommandToolbar({
   currentState,
   onAdvanceState,
   onFail,
+  onScanSubCommand,
   disabled = false,
 }: CommandToolbarProps) {
   const nextState = NEXT_STATE[currentState];
@@ -76,6 +80,34 @@ export function CommandToolbar({
           </p>
         )}
       </div>
+      {currentState === "SCANNING" && onScanSubCommand && (
+        <div className="toolbar-actions">
+          <Button
+            onClick={() => onScanSubCommand("CAPTURE_BACKGROUND")}
+            disabled={disabled}
+          >
+            Capture Background
+          </Button>
+          <Button
+            onClick={() => onScanSubCommand("START_OBJECT_SCAN")}
+            disabled={disabled}
+          >
+            Start Object Scan
+          </Button>
+          <Button
+            onClick={() => onScanSubCommand("CONFIRM_SCAN")}
+            disabled={disabled}
+          >
+            Confirm Scan
+          </Button>
+          <Button
+            onClick={() => onScanSubCommand("RESCAN")}
+            disabled={disabled}
+          >
+            Rescan
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

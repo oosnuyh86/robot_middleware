@@ -13,7 +13,11 @@ namespace RobotMiddleware.DataChannel
         APPROVE_VALIDATION = 5,
         START_EXECUTION = 6,
         MARK_FAILED = 7,
-        START_VALIDATING = 8
+        START_VALIDATING = 8,
+        CAPTURE_BACKGROUND = 9,
+        START_OBJECT_SCAN = 10,
+        CONFIRM_SCAN = 11,
+        RESCAN = 12
     }
 
     [System.Serializable]

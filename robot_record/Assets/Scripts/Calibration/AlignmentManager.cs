@@ -161,6 +161,12 @@ namespace RobotMiddleware.Calibration
                 return;
             }
 
+            if (_realSenseManager.IsStub)
+            {
+                OnCalibrationFailed?.Invoke("RealSense is in stub mode — real depth data required for calibration");
+                return;
+            }
+
             StartCoroutine(CapturePointCoroutine());
         }
 

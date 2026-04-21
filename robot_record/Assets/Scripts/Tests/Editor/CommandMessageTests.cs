@@ -64,6 +64,26 @@ namespace RobotMiddleware.Tests.Editor
 
             Assert.IsNull(result);
         }
+
+        [TestCase(CommandAction.CAPTURE_BACKGROUND, "CAPTURE_BACKGROUND")]
+        [TestCase(CommandAction.START_OBJECT_SCAN, "START_OBJECT_SCAN")]
+        [TestCase(CommandAction.CONFIRM_SCAN, "CONFIRM_SCAN")]
+        [TestCase(CommandAction.RESCAN, "RESCAN")]
+        public void CommandMessage_ScanSubCommands_ShouldRoundTrip(
+            CommandAction action, string expectedActionString)
+        {
+            var original = new CommandMessage(action, "rec-xyz-123");
+            var json = original.ToJson();
+
+            StringAssert.Contains(expectedActionString, json);
+
+            var deserialized = CommandMessage.FromJson(json);
+
+            Assert.IsNotNull(deserialized);
+            Assert.AreEqual(expectedActionString, deserialized.action);
+            Assert.AreEqual("rec-xyz-123", deserialized.payload);
+            Assert.AreEqual("COMMAND", deserialized.type);
+        }
     }
 }
 

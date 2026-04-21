@@ -103,6 +103,39 @@ export default function RecordDetailPage() {
     [id],
   );
 
+  const handleScanSubCommand = useCallback(
+    async (
+      action:
+        | "CAPTURE_BACKGROUND"
+        | "START_OBJECT_SCAN"
+        | "CONFIRM_SCAN"
+        | "RESCAN",
+    ) => {
+      setError(null);
+
+      if (!dataChannelRef.current) return;
+
+      dataChannelRef.current.sendCommand({
+        action,
+        payload: id,
+      });
+
+      // ConfirmScan advances state via Unity-side ScanManager -> RecordingManager.AlignSensors.
+      // Do NOT PATCH /records/:id/state here; just refetch after a short delay.
+      if (action === "CONFIRM_SCAN") {
+        try {
+          const updated = await get<RecordEntry>(`/records/${id}`);
+          setRecord(updated);
+        } catch (err) {
+          setError(
+            err instanceof Error ? err.message : "Failed to refresh record",
+          );
+        }
+      }
+    },
+    [id],
+  );
+
   const handleFail = useCallback(
     async (reason: string) => {
       setError(null);
@@ -244,6 +277,7 @@ export default function RecordDetailPage() {
             currentState={record.state}
             onAdvanceState={handleAdvanceState}
             onFail={handleFail}
+            onScanSubCommand={handleScanSubCommand}
           />
         </div>
 

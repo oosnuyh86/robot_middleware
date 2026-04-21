@@ -28,6 +28,11 @@ namespace RobotMiddleware.Scanning
 
         [SerializeField] private float _depthThresholdMm = 20f;
 
+        [Header("Scan Quality Gates")]
+        [SerializeField] private int _minScanPoints = 2000;
+        [SerializeField] private float _minDepthVariance = 0.0001f;
+        [SerializeField] private float _minScanVolume = 1e-6f;
+
         public ScanState CurrentState { get; private set; } = ScanState.Idle;
         public int PointCount { get; private set; }
 
@@ -78,7 +83,7 @@ namespace RobotMiddleware.Scanning
             if (CurrentState != ScanState.Scanning)
                 return;
 
-            if (_realSense == null || !_realSense.IsStreaming)
+            if (_realSense == null || !_realSense.IsStreaming || _realSense.IsStub)
                 return;
 
             // Each frame during scanning: grab depth, compute background subtraction
@@ -117,9 +122,9 @@ namespace RobotMiddleware.Scanning
         /// </summary>
         public void CaptureBackground()
         {
-            if (_realSense == null || !_realSense.IsStreaming)
+            if (_realSense == null || !_realSense.IsStreaming || _realSense.IsStub)
             {
-                Debug.LogWarning("[ScanManager] RealSense not streaming, cannot capture background");
+                Debug.LogWarning("[ScanManager] RealSense not streaming or in stub mode, cannot capture background");
                 return;
             }
 
@@ -155,6 +160,10 @@ namespace RobotMiddleware.Scanning
                 return;
             }
 
+            // Clear stale data from any previous scan
+            _scannedPoints = null;
+            _scannedColors = null;
+            _plyData = null;
             PointCount = 0;
             SetState(ScanState.Scanning);
             Debug.Log("[ScanManager] Scanning started");
@@ -192,7 +201,21 @@ namespace RobotMiddleware.Scanning
             _scannedColors = PointCloudExporter.GetMaskedColors(
                 _realSense.ColorTexture, _objectMask, intrinsics.width, intrinsics.height);
 
-            _plyData = PointCloudExporter.ExportPLY(_scannedPoints, _scannedColors);
+            try
+            {
+                _plyData = PointCloudExporter.ExportPLY(_scannedPoints, _scannedColors);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[ScanManager] PLY export failed: {ex.Message}");
+                _scannedPoints = null;
+                _scannedColors = null;
+                _plyData = null;
+                PointCount = 0;
+                SetState(ScanState.Ready);
+                return;
+            }
+
             PointCount = _scannedPoints.Count;
 
             SetState(ScanState.Preview);
@@ -217,6 +240,9 @@ namespace RobotMiddleware.Scanning
                 Debug.LogWarning("[ScanManager] No PLY data to upload");
                 return;
             }
+
+            if (!ValidateScanGeometry())
+                return;
 
             SetState(ScanState.Confirmed);
 
@@ -274,6 +300,80 @@ namespace RobotMiddleware.Scanning
             PointCount = 0;
 
             SetState(ScanState.Idle);
+        }
+
+        /// <summary>
+        /// Validates the scanned point cloud meets minimum quality thresholds.
+        /// Returns false (and logs the reason) if the scan should be rejected.
+        /// </summary>
+        private bool ValidateScanGeometry()
+        {
+            if (_scannedPoints == null)
+            {
+                Debug.LogError("[ScanManager] ValidateScanGeometry: _scannedPoints is null");
+                return false;
+            }
+
+            // Fix 6: Remove NaN/Inf points before validation
+            _scannedPoints.RemoveAll(p =>
+                float.IsNaN(p.x) || float.IsNaN(p.y) || float.IsNaN(p.z) ||
+                float.IsInfinity(p.x) || float.IsInfinity(p.y) || float.IsInfinity(p.z));
+
+            int count = _scannedPoints.Count;
+
+            // Fix 4: guard against zero-count before division
+            if (count == 0)
+            {
+                Debug.LogError("[ScanManager] Scan rejected: 0 valid points after NaN/Inf removal");
+                return false;
+            }
+
+            // Fix 3: clamp minimum to at least 1 so the gate is never bypassed by a bad config
+            int minPoints = Mathf.Max(_minScanPoints, 1);
+            if (count < minPoints)
+            {
+                Debug.LogError($"[ScanManager] Scan rejected: {count} points below minimum {minPoints}");
+                return false;
+            }
+
+            // Compute mean
+            Vector3 sum = Vector3.zero;
+            for (int i = 0; i < count; i++)
+                sum += _scannedPoints[i];
+            Vector3 mean = sum / count;
+
+            // Compute variance (average squared distance from mean) and bounding box
+            float varianceSum = 0f;
+            Vector3 bmin = _scannedPoints[0];
+            Vector3 bmax = _scannedPoints[0];
+
+            for (int i = 0; i < count; i++)
+            {
+                Vector3 d = _scannedPoints[i] - mean;
+                varianceSum += Vector3.Dot(d, d);
+
+                bmin = Vector3.Min(bmin, _scannedPoints[i]);
+                bmax = Vector3.Max(bmax, _scannedPoints[i]);
+            }
+
+            float variance = varianceSum / count;
+            Vector3 extent = bmax - bmin;
+            float volume = extent.x * extent.y * extent.z;
+
+            if (variance < _minDepthVariance)
+            {
+                Debug.LogError($"[ScanManager] Scan rejected: depth variance {variance:E4} below minimum {_minDepthVariance:E4} (flat/degenerate scan)");
+                return false;
+            }
+
+            if (volume < _minScanVolume)
+            {
+                Debug.LogError($"[ScanManager] Scan rejected: bounding volume {volume:E4} below minimum {_minScanVolume:E4}");
+                return false;
+            }
+
+            Debug.Log($"[ScanManager] Scan quality OK: {count} points, variance={variance:E4}, volume={volume:E4}");
+            return true;
         }
 
         private void SetState(ScanState newState)

@@ -136,6 +136,64 @@ namespace RobotMiddleware.Tests.Editor
             Assert.AreEqual(testRecordId, _recordingManager.RecordId,
                 "RecordId should be extracted from command payload");
         }
+
+        /// <summary>
+        /// Helper to force the RecordingManager's CurrentState for state-gate tests.
+        /// </summary>
+        private void SetRecordingState(RecordingState state)
+        {
+            var prop = typeof(RecordingManager).GetProperty(
+                "CurrentState",
+                BindingFlags.Public | BindingFlags.Instance);
+            prop.SetValue(_recordingManager, state);
+        }
+
+        [Test]
+        public void HandleCommand_ScanSubCommand_InWrongState_ShouldSendError()
+        {
+            // RecordingManager starts in Idle; CAPTURE_BACKGROUND requires Scanning.
+            // The InvalidOperationException from the passthrough should be caught
+            // by MiddlewareController and routed to SendError (no ACK).
+            Assert.AreEqual(RecordingState.Idle, _recordingManager.CurrentState);
+
+            var cmd = new CommandMessage(CommandAction.CAPTURE_BACKGROUND);
+
+            Assert.DoesNotThrow(() => InvokeHandleCommand(cmd),
+                "HandleCommand should swallow InvalidOperationException and not rethrow");
+        }
+
+        [Test]
+        public void HandleCommand_ScanSubCommand_InScanningState_ShouldDispatch()
+        {
+            // When in Scanning state, the passthrough should NOT throw the state
+            // gate — it will call into ScanManager which is null in this test scene,
+            // so the null-guard logs an error and returns cleanly.
+            SetRecordingState(RecordingState.Scanning);
+
+            var cmd = new CommandMessage(CommandAction.CAPTURE_BACKGROUND);
+
+            Assert.DoesNotThrow(() => InvokeHandleCommand(cmd),
+                "HandleCommand(CAPTURE_BACKGROUND) in Scanning should dispatch without throwing");
+        }
+
+        [TestCase(CommandAction.CAPTURE_BACKGROUND)]
+        [TestCase(CommandAction.START_OBJECT_SCAN)]
+        [TestCase(CommandAction.CONFIRM_SCAN)]
+        [TestCase(CommandAction.RESCAN)]
+        public void HandleCommand_AllFourScanSubCommands_ShouldParseEnum(CommandAction action)
+        {
+            // Each sub-command should parse into the enum and be routed through
+            // the switch in HandleCommand without throwing ArgumentException.
+            // We use Idle so the state gate rejects (InvalidOperationException),
+            // which HandleCommand catches and converts to SendError — the point
+            // is that the enum parse + switch dispatch both work.
+            Assert.AreEqual(RecordingState.Idle, _recordingManager.CurrentState);
+
+            var cmd = new CommandMessage(action);
+
+            Assert.DoesNotThrow(() => InvokeHandleCommand(cmd),
+                $"HandleCommand({action}) should parse and dispatch without throwing");
+        }
     }
 }
 

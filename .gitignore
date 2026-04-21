@@ -50,3 +50,23 @@ pnpm-debug.log*
 
 # TypeScript
 *.tsbuildinfo
+
+# Session / tooling state (local, do not commit)
+.mongo-data/
+.gstack/
+.playwright-mcp/
+.claude/scheduled_tasks.lock
+
+# Debug screenshots (playwright + E2E scratch)
+companies-fixed.png
+companies-list.png
+dashboard.png
+e2e-*.png
+record-detail.png
+records-list.png
+robot_record/Assets/Screenshots/screenshot-*.png
+robot_record/Assets/Screenshots/screenshot-*.png.meta
+
+# Unity emergency scene-recovery dumps (auto-generated, not source of truth)
+robot_record/Assets/_Recovery/
+robot_record/Assets/_Recovery.meta

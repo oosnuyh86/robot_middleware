@@ -34,6 +34,24 @@ app.get("/api/health", (_req, res) => {
   res.json({ status: "ok" });
 });
 
+// API index
+app.get("/api", (_req, res) => {
+  res.json({
+    name: "robot_middleware backend",
+    status: "ok",
+    endpoints: [
+      "/api/health",
+      "/api/companies",
+      "/api/professionals",
+      "/api/jobs",
+      "/api/records",
+      "/api/uploads",
+      "/api/alignment",
+    ],
+    ws: "/ws",
+  });
+});
+
 // Error handler (must be last)
 app.use(errorHandler);
 
